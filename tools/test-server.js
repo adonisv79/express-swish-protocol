@@ -1,3 +1,5 @@
+'use-strict';
+
 const bodyParser = require('body-parser');
 const express = require('express');
 const session = require('express-session');
@@ -19,16 +21,14 @@ app.use(session({
 // use our swish server middleware
 app.use(SwishServer);
 
-app.post('/test/success', (req, res, next) => {
-  console.log(req.sessionID);
-  console.log(req.headers.swish_sess_id);
+app.post('/test/success', (req, res) => {
+  console.log('Received');
   console.dir(req.body);
   res.sendSwish('SUCCESS');
 });
 
-app.post('/test/err', (req, res, next) => {
-  console.log(req.sessionID);
-  console.log(req.headers.swish_sess_id);
+app.post('/test/err', (req, res) => {
+  console.log('Received');
   console.dir(req.body);
   res.status(403).sendSwish('THIS IS A TESTERROR');
 });
