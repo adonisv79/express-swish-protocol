@@ -8,8 +8,45 @@ SWISH (Secured Web Iterating Session Handshake) middle-ware for Express
   * develop: [![Build Status](https://travis-ci.org/adonisv79/express-swish.svg?branch=develop)](https://travis-ci.org/adonisv79/express-swish) [![Coverage Status](https://coveralls.io/repos/github/adonisv79/express-swish/badge.svg?branch=develop)](https://coveralls.io/github/adonisv79/express-swish?branch=develop)
   * master: [![Build Status](https://travis-ci.org/adonisv79/express-swish.svg?branch=master)](https://travis-ci.org/adonisv79/express-swish) [![Coverage Status](https://coveralls.io/repos/github/adonisv79/express-swish/badge.svg)](https://coveralls.io/github/adonisv79/express-swish)
 
-  ## Installation
-The module is released and available in NPMJS (https://www.npmjs.com/package/adon-api-handshake) 
+## Installation
+The module is released and available in NPMJS (https://www.npmjs.com/package/express-swish) 
 ```
 npm install express-swish --save
+```
+## Sample use
+The express-swish adds a new function sendSwish() that manages the swish requests. All swish request body arrive encrypted by the time we check req.body. Then the response are SWISH encrypted on the sendSwish() calls.
+```
+const bodyParser = require('body-parser');
+const express = require('express');
+const session = require('express-session');
+const { v4 } = require('uuid');
+const { SwishServer } = require('express-swish');
+
+const port = 3000;
+const app = express();
+app.use(bodyParser.json());
+app.set('trust proxy', 1); // trust first proxy
+app.use(session({
+  genid: () => GenerateSessionId(), // generate a UUIDv4 session id
+  resave: true,
+  saveUninitialized: true,
+  secret: 'keyboard cat',
+}));
+
+// use our swish server middleware
+app.use(SwishServer);
+
+//lets create a simple test endpoint
+app.post('/test', (req, res, next) => {
+  console.dir(req.body);
+  res.sendSwish('OMG!'); //swish-express adds a new sendSwish command
+});
+
+app.post('/test/error', (req, res, next) => {
+  console.dir(req.body);
+  res.status(400).sendSwish('OMG!'); //swish-express adds a new sendSwish command
+});
+
+app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+
 ```
