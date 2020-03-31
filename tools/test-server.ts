@@ -1,7 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import {
-  SwishResponse, SwishRequest, swishSessionObject, Swish,
-} from '../src/index';
+import { swishSessionObject, Swish } from '../src/index';
 
 import express = require('express');
 import bodyParser = require('body-parser');
@@ -46,12 +44,12 @@ app.use(bodyParser.json());
 // use our swish server middleware
 app.use(swish.middleware);
 
-app.post('/test/success', (req: Request, res: SwishResponse) => {
+app.post('/test/success', (req: Request, res: Response) => {
   console.log('Received request for /test/success');
   res.sendSwish({ status: 'success' });
 });
 
-app.post('/test/err', (req: Request, res: SwishResponse) => {
+app.post('/test/err', (req: Request, res: Response) => {
   console.log('Received request for /test/err');
   res.status(403).sendSwish({ status: 'error', message: 'THIS IS A TESTERROR' });
 });

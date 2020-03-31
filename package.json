@@ -1,6 +1,6 @@
 {
   "name": "express-swish-protocol",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "SWISH (Secured Web Iterating Session Handshake) middle-ware for Express",
   "main": "dist/src/index.js",
   "files": [

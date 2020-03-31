@@ -12,13 +12,26 @@ export type swishSessionObject = {
   createdDate: number;
 }
 
-export interface SwishRequest extends Request {
-  swish: swishSessionObject;
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request {
+      swish: swishSessionObject;
+    }
+    interface Response {
+      sendSwish(body: object): void;
+    }
+  }
 }
 
-export interface SwishResponse extends Response {
-  sendSwish(body: object): void;
-}
+//export interface SwishRequest extends Request {
+//  swish: swishSessionObject;
+//}
+
+//export interface SwishResponse extends Response {
+//  sendSwish(body: object): void;
+// }
 function getSwishFromReqHeaders(reqHeaders: IncomingHttpHeaders): SwishHeaders {
   const headers: SwishHeaders = {
     swishAction: '', swishIV: '', swishKey: '', swishNextPublic: '', swishSessionId: '',
@@ -41,7 +54,7 @@ function getSwishFromReqHeaders(reqHeaders: IncomingHttpHeaders): SwishHeaders {
   return headers;
 }
 
-function validateRequestSession(req: SwishRequest): void {
+function validateRequestSession(req: Request): void {
   if (req.swish === undefined) {
     throw new Error('SWISH_SESSION_HANDSHAKE_ERROR: Handshake may not have initialized...');
   } else if (req.swish === undefined || req.swish.sessionId === '') {
@@ -86,7 +99,7 @@ export class Swish {
     self = this;
   }
 
-  loadSession(req: SwishRequest) {
+  loadSession(req: Request) {
     const sessionId = (req.headers['swish-sess-id'] || '').toString();
     if (sessionId === '') { // create a new ID
       req.swish = self.createSession();
@@ -95,7 +108,7 @@ export class Swish {
     }
   }
 
-  handleHandshake(req: SwishRequest, res: SwishResponse): any {
+  handleHandshake(req: Request, res: Response): any {
     const swishHeaders = getSwishFromReqHeaders(req.headers);
     if (swishHeaders.swishAction !== 'handshake_init') {
       throw new Error('SWISH_HANDSHAKE_INVALID_ACTION');
@@ -120,11 +133,11 @@ export class Swish {
     res.send(result.body);
   }
 
-  handleSwishRequest(req: SwishRequest, res: SwishResponse, next: NextFunction): any {
+  handleSwishRequest(req: Request, res: Response, next: NextFunction): any {
     // get the decrypted request
     const headers = getSwishFromReqHeaders(req.headers);
     if (req.swish) {
-      const privateKey = Buffer.from(req.swish.nextPrivate, 'utf8');
+      const privateKey = req.swish.nextPrivate;
       const passphrase = req.swish.createdDate.toString();
       const decResult = serverHS.decryptRequest(headers, req.body, privateKey, passphrase);
       req.body = decResult.body;
@@ -136,19 +149,19 @@ export class Swish {
     return next();
   }
 
-  handleSwishSessionDestroy(req: SwishRequest, res: SwishResponse) {
+  handleSwishSessionDestroy(req: Request, res: Response) {
     if (self.destroySession(req.swish.sessionId)) {
       return res.send({ code: 200, action: 'session_destroy' });
     }
     throw new Error('SESSION_DESTROY_FAILED');
   }
 
-  middleware(req: SwishRequest, res: SwishResponse, next: NextFunction): void {
+  middleware(req: Request, res: Response, next: NextFunction): void {
     try {
       self.loadSession(req);
       validateRequestSession(req);
       // reconstruct the new sendSwish extended function using the new keys and session states
-      res.sendSwish = (body: object = {}): any => {
+      res.sendSwish = (body: object = {}): void => {
         try {
           self.loadSession(req);
           const result = serverHS.encryptResponse(
@@ -166,7 +179,7 @@ export class Swish {
             'swish-sess-id': result.headers.swishSessionId,
           };
           res.set(newHeaders);
-          return res.send(result.body);
+          res.send(result.body);
         } catch (err) {
           self.error(err, req, res, next);
         }
