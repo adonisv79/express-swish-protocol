@@ -16,13 +16,13 @@
     "sourceMap": true,
     "noUnusedLocals": false,
     "noImplicitReturns": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "traceResolution": false
   },
   "include": [ "src/**/*", "tools/**/*" ],
   "exclude": [
     "node_modules",
     "coverage",
     "**/*.spec.ts"
-  ],
-  "files": [ "tools/types.d.ts" ]
+  ]
 }
