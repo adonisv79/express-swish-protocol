@@ -96,13 +96,13 @@ async function senddSwish(req: Request, res: Response, next: NextFunction, body:
 }
 
 /** A callback function that gets triggered whenever a user session needs to be created */
-type onSessionCreateCallback = () => Promise<swishSessionObject>;
+export type onSessionCreateCallback = () => Promise<swishSessionObject>;
 /** A callback function that gets triggered whenever a user session needs to be retrieved */
-type onSessionRetrieveCallback = (sessionId: string) => Promise<swishSessionObject>;
+export type onSessionRetrieveCallback = (sessionId: string) => Promise<swishSessionObject>;
 /** A callback function that gets triggered whenever a user session needs to be updated */
-type onSessionUpdateCallback = (sessionId: string, delta: swishSessionObject) => Promise<boolean>;
+export type onSessionUpdateCallback = (sessionId: string, delta: swishSessionObject) => Promise<boolean>;
 /** A callback function that gets triggered whenever a user session needs to be deleted */
-type onSessionDestroyCallback = (sessionId: string) => Promise<boolean>;
+export type onSessionDestroyCallback = (sessionId: string) => Promise<boolean>;
 
 /** The expressjs Swish protocol implementation */
 export class Swish {
