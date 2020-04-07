@@ -1,9 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
+// import express from 'express';
+import * as bodyParser from 'body-parser';
 import { swishSessionObject, Swish } from '../src/index';
 
-import express = require('express');
-import bodyParser = require('body-parser');
+// import express = require('express');
 const sess: any = {};
+
 async function onSessionCreate(): Promise<swishSessionObject> {
   const d = new Date();
   const sessionId = d.getTime().toString();
