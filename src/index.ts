@@ -1,10 +1,10 @@
 import { IncomingHttpHeaders } from 'http';
 import HtmlError, { serverErrorCodes, clientErrorCodes } from 'html-codes';
-import { HandshakeServer, SwishHeaders } from 'swish-protocol';
+import { SwishServer, SwishHeaders } from 'swish-protocol';
 import { Request, Response, NextFunction } from 'express';
 
 let self: any;
-const serverHS = new HandshakeServer();
+const serverHS = new SwishServer();
 
 /** Defines the swish object values */
 export type swishSessionObject = {
