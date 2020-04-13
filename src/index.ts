@@ -245,6 +245,8 @@ export class Swish {
         } else {
           throw new Error(`SWISH_ACTION_INVALID:${req.headers.swish_action}`);
         }
+      } else {
+        throw new Error('SWISH_ACTION_UNDEFINED');
       }
     } catch (err) {
       if (err instanceof HtmlError) {
