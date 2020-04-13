@@ -1,5 +1,5 @@
 # express-swish-protocol
-SWISH (Secured Web Iterating Session Handshake) middle-ware for Express
+SWISH (Secured Web Iterating Session Handshake) middleware for Express
 
 ## Project stats
 * Package: [![npm](https://img.shields.io/npm/v/express-swish-protocol.svg)](https://www.npmjs.com/package/express-swish-protocol) [![npm](https://img.shields.io/npm/dm/express-swish-protocol.svg)](https://www.npmjs.com/package/express-swish-protocol)
@@ -15,37 +15,65 @@ npm install express-swish-protocol --save
 ## Sample use
 The express-swish-protocol adds a new function sendSwish() that manages the swish requests. All swish request body arrive encrypted by the time we check req.body. Then the response are SWISH encrypted on the sendSwish() calls.
 ```
-const bodyParser = require('body-parser');
-const express = require('express');
-const session = require('express-session');
-const { v4 } = require('uuid');
-const { SwishServer } = require('express-swish-protocol');
+import express, { Request, Response, NextFunction } from 'express';
+import * as bodyParser from 'body-parser';
+import { Swish, swishSessionObject } from '../src/index';
 
-const port = 3000;
+// lets simulate a simple session manager by using a plain object
+const sess: any = {};
+
+/** our simple session creation event handler */
+async function onSessionCreate(): Promise<swishSessionObject> {
+  const d = new Date();
+  const sessionId = d.getTime().toString();
+  sess[sessionId] = {
+    swish: { sessionId },
+  };
+  console.log(`Session '${sessionId}' created.`);
+  return sess[sessionId].swish;
+}
+
+/** our simple session retrieve event handler */
+async function onSessionRetrieve(sessionId: string): Promise<swishSessionObject> {
+  console.log(`Session '${sessionId}' retrieved.`);
+  return (sess[sessionId] || {}).swish;
+}
+
+/** our simple session update event handler */
+async function onSessionUpdate(sessionId: string, delta: swishSessionObject): Promise<boolean> {
+  sess[sessionId].swish = { ...sess[sessionId].swish, ...delta };
+  console.log(`Session '${sessionId}' updated...`);
+  return true;
+}
+
+/** our simple session destroy event handler */
+async function onSessionDestroy(sessionId: string): Promise<boolean> {
+  delete sess[sessionId];
+  console.log(`Session '${sessionId}' has been terminated.`);
+  return true;
+}
+
+// initiate our swish instance
+const swish = new Swish(onSessionCreate, onSessionRetrieve, onSessionUpdate, onSessionDestroy);
+
+// Load our basic express app
 const app = express();
 app.use(bodyParser.json());
-app.set('trust proxy', 1); // trust first proxy
-app.use(session({
-  genid: () => GenerateSessionId(), // generate a UUIDv4 session id
-  resave: true,
-  saveUninitialized: true,
-  secret: 'keyboard cat',
-}));
 
-// use our swish server middleware
-app.use(SwishServer);
+// And attach our swish server middleware for anything under the '/api' route
+app.use('/api', swish.middleware);
 
-//lets create a simple test endpoint
-app.post('/test', (req, res, next) => {
-  console.dir(req.body);
-  res.sendSwish('OMG!'); //swish-express adds a new sendSwish command
+// Add some sample routes
+app.post('/api/success', async (req: Request, res: Response, next: NextFunction) => {
+  console.log('Received request for /test/success');
+  await res.sendSwish(req, res, next, { status: 'success' });
 });
 
-app.post('/test/error', (req, res, next) => {
-  console.dir(req.body);
-  res.status(400).sendSwish('OMG!'); //swish-express adds a new sendSwish command
+app.post('/api/err', async (req: Request, res: Response, next: NextFunction) => {
+  console.log('Received request for /test/err');
+  await res.status(403).sendSwish(req, res, next, { status: 'error', message: 'THIS IS A TESTERROR' });
 });
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
-
+// and start our project
+app.listen(3000, () => console.log('Example app listening on port 3000'));
 ```

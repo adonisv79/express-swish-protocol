@@ -1,12 +1,8 @@
 import RequestSwishClient, { HttpMethods, HTTPRequestConfig } from 'request-swish';
-  
+
 const SERVER_URL = 'http://localhost:3000';
 const httpStartHandshake: HTTPRequestConfig = {
   method: HttpMethods.GET,
-  uri: `${SERVER_URL}/auth/swish/handshake`,
-};
-const httpSendMessage: HTTPRequestConfig = {
-  method: HttpMethods.POST,
   uri: `${SERVER_URL}/auth/swish/handshake`,
 };
 const httpKillHandshake: HTTPRequestConfig = {

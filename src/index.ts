@@ -56,15 +56,11 @@ function getSwishFromReqHeaders(reqHeaders: IncomingHttpHeaders): SwishHeaders {
 }
 
 function validateRequestSession(req: Request): void {
-  if (req.swish === undefined) {
-    throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_SESSION_HANDSHAKE_MISSING');
-  } else if (req.swish === undefined || req.swish.sessionId === '') {
-    throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_SESSION_HANDSHAKE_NOT_LOADED');
-  } else if (
+  if (
     (req.headers['swish-action'] || '').toString().toLowerCase() !== 'handshake_init'
     && (req.swish.nextPrivate === undefined || req.swish.createdDate === undefined)
   ) {
-    throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_SESSION_HANDSHAKE_INIT_INVALID');
+    throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_TRANSACTION_INVALID_CHAIN');
   }
 }
 
@@ -141,9 +137,14 @@ export class Swish {
   private async loadSession(req: Request): Promise<void> {
     const sessionId = (req.headers['swish-sess-id'] || '').toString();
     if (sessionId === '') { // create a new ID
-      req.swish = await self.createSession();
-    } else { // load it
-      req.swish = await self.retrieveSession(sessionId);
+      throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_HANDSHAKE_REQUIRED');
+    }
+    req.swish = await self.retrieveSession(sessionId);
+
+    if (req.swish === undefined) {
+      throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_SESSION_HANDSHAKE_MISSING');
+    } else if (req.swish === undefined || req.swish.sessionId === '') {
+      throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_SESSION_HANDSHAKE_NOT_LOADED');
     }
   }
 
@@ -158,6 +159,7 @@ export class Swish {
     if (swishHeaders.swishAction !== 'handshake_init') {
       throw new HtmlError(clientErrorCodes.forbidden, 'SWISH_HANDSHAKE_INVALID_ACTION');
     }
+    req.swish = await self.createSession();
     swishHeaders.swishSessionId = (req.swish.sessionId || '').toString();
     const result = serverHS.handleHandshakeRequest(swishHeaders);
     if (req.swish) {
@@ -190,7 +192,7 @@ export class Swish {
     const headers = getSwishFromReqHeaders(req.headers);
     if (req.swish) {
       if (!req.swish.nextPrivate) {
-        throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_PRIVATE_KEY_UNDEFINED');
+        throw new HtmlError(clientErrorCodes.forbidden, 'SWISH_PRIVATE_KEY_UNDEFINED');
       }
       const privateKey = req.swish.nextPrivate;
       const passphrase = req.swish.createdDate.toString();
@@ -226,17 +228,19 @@ export class Swish {
    */
   async middleware(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await self.loadSession(req);
-      validateRequestSession(req);
       // reconstruct the new sendSwish extended function using the new keys and session states
       res.sendSwish = senddSwish;
 
       if (req.headers['swish-action'] !== undefined) {
-        if (req.headers['swish-action'] === 'request_basic') {
-          await self.handleSwishRequest(req, res, next);
-        } else if (req.headers['swish-action'] === 'handshake_init') {
+        if (req.headers['swish-action'] === 'handshake_init') {
           await self.handleHandshake(req, res);
+        } else if (req.headers['swish-action'] === 'request_basic') {
+          await self.loadSession(req);
+          validateRequestSession(req);
+          await self.handleSwishRequest(req, res, next);
         } else if (req.headers['swish-action'] === 'session_destroy') {
+          await self.loadSession(req);
+          validateRequestSession(req);
           await self.handleSwishSessionDestroy(req, res);
         } else {
           throw new Error(`SWISH_ACTION_INVALID:${req.headers.swish_action}`);
