@@ -42,17 +42,17 @@ const swish = new Swish(onSessionCreate, onSessionRetrieve, onSessionUpdate, onS
 const app = express();
 app.use(bodyParser.json());
 
-// And attach our swish server middleware for anything under the '/api' route
-app.use('/api', swish.middleware);
+// And attach our swish server middleware for anything under the '/sapi' route
+app.use('/sapi', swish.middleware);
 
 // Add some sample routes
-app.post('/api/success', async (req: Request, res: Response, next: NextFunction) => {
-  console.log('Received request for /test/success');
+app.post('/sapi/test/success', async (req: Request, res: Response, next: NextFunction) => {
+  console.log('Received request for /sapi/test/success');
   await res.sendSwish(req, res, next, { status: 'success' });
 });
 
-app.post('/api/err', async (req: Request, res: Response, next: NextFunction) => {
-  console.log('Received request for /test/err');
+app.post('/sapi/test/err', async (req: Request, res: Response, next: NextFunction) => {
+  console.log('Received request for /sapi/test/err');
   await res.status(403).sendSwish(req, res, next, { status: 'error', message: 'THIS IS A TESTERROR' });
 });
 

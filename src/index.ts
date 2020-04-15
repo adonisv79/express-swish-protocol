@@ -20,6 +20,7 @@ declare global {
     interface Request {
       /** The swish session object that is shared by the client each request */
       swish: swishSessionObject;
+      sessionID: string;
     }
     interface Response {
       /**
@@ -140,6 +141,7 @@ export class Swish {
       throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_HANDSHAKE_REQUIRED');
     }
     req.swish = await self.retrieveSession(sessionId);
+    req.sessionID = sessionId;
 
     if (req.swish === undefined) {
       throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_SESSION_HANDSHAKE_MISSING');
@@ -159,8 +161,11 @@ export class Swish {
     if (swishHeaders.swishAction !== 'handshake_init') {
       throw new HtmlError(clientErrorCodes.forbidden, 'SWISH_HANDSHAKE_INVALID_ACTION');
     }
+
     req.swish = await self.createSession();
-    swishHeaders.swishSessionId = (req.swish.sessionId || '').toString();
+    req.sessionID = (req.swish.sessionId || '').toString();
+    swishHeaders.swishSessionId = req.sessionID;
+
     const result = serverHS.handleHandshakeRequest(swishHeaders);
     if (req.swish) {
       await self.updateSession(req.swish.sessionId, {
