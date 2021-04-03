@@ -1,5 +1,5 @@
 # express-swish-protocol
-SWISH (Secured Web Iterating Session Handshake) middleware for Express
+This is the SWISH (Secured Web Iterating Session Handshake) middleware implementation for ExpressJS. For the core SWISH Protocol project, please refer to https://github.com/adonisv79/swish-protocol
 
 ## Project stats
 * Package: [![npm](https://img.shields.io/npm/v/express-swish-protocol.svg)](https://www.npmjs.com/package/express-swish-protocol) [![npm](https://img.shields.io/npm/dm/express-swish-protocol.svg)](https://www.npmjs.com/package/express-swish-protocol)

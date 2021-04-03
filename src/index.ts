@@ -1,13 +1,13 @@
-import { IncomingHttpHeaders } from 'http';
-import HtmlError, { serverErrorCodes, clientErrorCodes } from 'html-codes';
-import { SwishServer, SwishHeaders } from 'swish-protocol';
-import { Request, Response, NextFunction } from 'express';
+import { IncomingHttpHeaders } from 'http'
+import HtmlError, { serverErrorCodes, clientErrorCodes } from 'html-codes'
+import { SwishServer, SwishHeaders } from 'swish-protocol'
+import { Request, Response, NextFunction } from 'express'
 
-let self: any;
-const serverHS = new SwishServer();
+let self: any
+const serverHS = new SwishServer()
 
 /** Defines the swish object values */
-export type swishSessionObject = {
+export type SwishSessionObject = {
   createdDate: number;
   sessionId: string;
   nextPublic?: string;
@@ -19,7 +19,7 @@ declare global {
   namespace Express {
     interface Request {
       /** The swish session object that is shared by the client each request */
-      swish: swishSessionObject;
+      swish: SwishSessionObject;
       sessionID: string;
     }
     interface Response {
@@ -29,7 +29,7 @@ declare global {
        * @param res The expressJs response object
        * @param body The response body to send (currently uses objects only)
        */
-      sendSwish(req: Request, res: Response, next: NextFunction, body: object): void;
+      sendSwish(req: Request, res: Response, next: NextFunction, body: Record<string, unknown>): void;
     }
   }
 }
@@ -37,23 +37,23 @@ declare global {
 function getSwishFromReqHeaders(reqHeaders: IncomingHttpHeaders): SwishHeaders {
   const headers: SwishHeaders = {
     swishAction: '', swishIV: '', swishKey: '', swishNextPublic: '', swishSessionId: '',
-  };
+  }
   if (typeof reqHeaders['swish-action'] === 'string') {
-    headers.swishAction = reqHeaders['swish-action'];
+    headers.swishAction = reqHeaders['swish-action']
   }
   if (typeof reqHeaders['swish-iv'] === 'string') {
-    headers.swishIV = reqHeaders['swish-iv'];
+    headers.swishIV = reqHeaders['swish-iv']
   }
   if (typeof reqHeaders['swish-key'] === 'string') {
-    headers.swishKey = reqHeaders['swish-key'];
+    headers.swishKey = reqHeaders['swish-key']
   }
   if (typeof reqHeaders['swish-next'] === 'string') {
-    headers.swishNextPublic = reqHeaders['swish-next'];
+    headers.swishNextPublic = reqHeaders['swish-next']
   }
   if (typeof reqHeaders['swish-sess-id'] === 'string') {
-    headers.swishSessionId = reqHeaders['swish-sess-id'];
+    headers.swishSessionId = reqHeaders['swish-sess-id']
   }
-  return headers;
+  return headers
 }
 
 function validateRequestSession(req: Request): void {
@@ -61,55 +61,56 @@ function validateRequestSession(req: Request): void {
     (req.headers['swish-action'] || '').toString().toLowerCase() !== 'handshake_init'
     && (req.swish.nextPrivate === undefined || req.swish.createdDate === undefined)
   ) {
-    throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_TRANSACTION_INVALID_CHAIN');
+    throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_TRANSACTION_INVALID_CHAIN')
   }
 }
 
-async function senddSwish(req: Request, res: Response, next: NextFunction, body: object = {}): Promise<void> {
+async function senddSwish(req: Request, res: Response, next: NextFunction, body: Record<string, unknown> = {}): Promise<void> {
   try {
-    await self.loadSession(req);
+    await self.loadSession(req)
     if (!req.swish.nextPublic) {
-      throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_PUBLIC_KEY_UNDEFINED');
+      throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_PUBLIC_KEY_UNDEFINED')
     }
     const result = serverHS.encryptResponse(
       req.swish.sessionId, body, req.swish.nextPublic,
-    );
+    )
+    // need to use a 'this' reference for this
     await self.updateSession(req.swish.sessionId, {
       nextPrivate: result.decrypt.nextPrivate,
       createdDate: result.decrypt.createdDate,
-    });
+    })
     const newHeaders = {
       'swish-action': result.headers.swishAction,
       'swish-iv': result.headers.swishIV,
       'swish-key': result.headers.swishKey,
       'swish-next': result.headers.swishNextPublic,
       'swish-sess-id': result.headers.swishSessionId,
-    };
-    res.set(newHeaders);
-    res.send(result.body);
+    }
+    res.set(newHeaders)
+    res.send(result.body)
   } catch (err) {
-    next(err.message);
+    next(err.message)
   }
 }
 
 /** A callback function that gets triggered whenever a user session needs to be created */
-export type onSessionCreateCallback = () => Promise<swishSessionObject>;
+export type OnSessionCreateCallback = () => Promise<SwishSessionObject>
 /** A callback function that gets triggered whenever a user session needs to be retrieved */
-export type onSessionRetrieveCallback = (sessionId: string) => Promise<swishSessionObject>;
+export type OnSessionRetrieveCallback = (sessionId: string) => Promise<SwishSessionObject>
 /** A callback function that gets triggered whenever a user session needs to be updated */
-export type onSessionUpdateCallback = (sessionId: string, delta: swishSessionObject) => Promise<boolean>;
+export type OnSessionUpdateCallback = (sessionId: string, delta: Partial<SwishSessionObject>) => Promise<boolean>
 /** A callback function that gets triggered whenever a user session needs to be deleted */
-export type onSessionDestroyCallback = (sessionId: string) => Promise<boolean>;
+export type OnSessionDestroyCallback = (sessionId: string) => Promise<boolean>
 
 /** The expressjs Swish protocol implementation */
 export class Swish {
-  private createSession: onSessionCreateCallback;
+  private createSession: OnSessionCreateCallback
 
-  private retrieveSession: onSessionRetrieveCallback;
+  private retrieveSession: OnSessionRetrieveCallback
 
-  private updateSession: onSessionUpdateCallback;
+  private updateSession: OnSessionUpdateCallback
 
-  private destroySession: onSessionDestroyCallback;
+  private destroySession: OnSessionDestroyCallback
 
   /**
    * Creates a new instance of an ExpressJS Swish protocol middleware
@@ -119,16 +120,16 @@ export class Swish {
    * @param onSessionDestroy The callback function triggered whenever a user session needs to be deleted
    */
   constructor(
-    onSessionCreate: onSessionCreateCallback,
-    onSessionRetrieve: onSessionRetrieveCallback,
-    onSessionUpdate: onSessionUpdateCallback,
-    onSessionDestroy: onSessionDestroyCallback,
+    onSessionCreate: OnSessionCreateCallback,
+    onSessionRetrieve: OnSessionRetrieveCallback,
+    onSessionUpdate: OnSessionUpdateCallback,
+    onSessionDestroy: OnSessionDestroyCallback,
   ) {
-    this.createSession = onSessionCreate;
-    this.retrieveSession = onSessionRetrieve;
-    this.updateSession = onSessionUpdate;
-    this.destroySession = onSessionDestroy;
-    self = this;
+    this.createSession = onSessionCreate
+    this.retrieveSession = onSessionRetrieve
+    this.updateSession = onSessionUpdate
+    this.destroySession = onSessionDestroy
+    self = this
   }
 
   /**
@@ -136,17 +137,17 @@ export class Swish {
    * @param req The expressJs request object
    */
   private async loadSession(req: Request): Promise<void> {
-    const sessionId = (req.headers['swish-sess-id'] || '').toString();
+    const sessionId = (req.headers['swish-sess-id'] || '').toString()
     if (sessionId === '') { // create a new ID
-      throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_HANDSHAKE_REQUIRED');
+      throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_HANDSHAKE_REQUIRED')
     }
-    req.swish = await self.retrieveSession(sessionId);
-    req.sessionID = sessionId;
+    req.swish = await this.retrieveSession(sessionId)
+    req.sessionID = sessionId
 
     if (req.swish === undefined) {
-      throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_SESSION_HANDSHAKE_MISSING');
+      throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_SESSION_HANDSHAKE_MISSING')
     } else if (req.swish === undefined || req.swish.sessionId === '') {
-      throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_SESSION_HANDSHAKE_NOT_LOADED');
+      throw new HtmlError(clientErrorCodes.unauthorized, 'SWISH_SESSION_HANDSHAKE_NOT_LOADED')
     }
   }
 
@@ -157,21 +158,21 @@ export class Swish {
    * @param res The expressJs response object
    */
   async handleHandshake(req: Request, res: Response): Promise<void> {
-    const swishHeaders = getSwishFromReqHeaders(req.headers);
+    const swishHeaders = getSwishFromReqHeaders(req.headers)
     if (swishHeaders.swishAction !== 'handshake_init') {
-      throw new HtmlError(clientErrorCodes.forbidden, 'SWISH_HANDSHAKE_INVALID_ACTION');
+      throw new HtmlError(clientErrorCodes.forbidden, 'SWISH_HANDSHAKE_INVALID_ACTION')
     }
 
-    req.swish = await self.createSession();
-    req.sessionID = (req.swish.sessionId || '').toString();
-    swishHeaders.swishSessionId = req.sessionID;
+    req.swish = await this.createSession()
+    req.sessionID = (req.swish.sessionId || '').toString()
+    swishHeaders.swishSessionId = req.sessionID
 
-    const result = serverHS.handleHandshakeRequest(swishHeaders);
+    const result = serverHS.handleHandshakeRequest(swishHeaders)
     if (req.swish) {
-      await self.updateSession(req.swish.sessionId, {
+      await this.updateSession(req.swish.sessionId, {
         nextPrivate: result.decrypt.nextPrivate,
         createdDate: result.decrypt.createdDate,
-      });
+      })
     }
 
     const newHeaders = {
@@ -180,9 +181,9 @@ export class Swish {
       'swish-key': result.headers.swishKey,
       'swish-next': result.headers.swishNextPublic,
       'swish-sess-id': result.headers.swishSessionId,
-    };
-    res.set(newHeaders);
-    res.send(result.body);
+    }
+    res.set(newHeaders)
+    res.send(result.body)
   }
 
   /**
@@ -192,23 +193,23 @@ export class Swish {
    * @param res The expressJs response object
    * @param next The expressJs 'Next' function
    */
-  async handleSwishRequest(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async handleSwishRequest(req: Request, _res: Response, next: NextFunction): Promise<void> {
     // get the decrypted request
-    const headers = getSwishFromReqHeaders(req.headers);
+    const headers = getSwishFromReqHeaders(req.headers)
     if (req.swish) {
       if (!req.swish.nextPrivate) {
-        throw new HtmlError(clientErrorCodes.forbidden, 'SWISH_PRIVATE_KEY_UNDEFINED');
+        throw new HtmlError(clientErrorCodes.forbidden, 'SWISH_PRIVATE_KEY_UNDEFINED')
       }
-      const privateKey = req.swish.nextPrivate;
-      const passphrase = req.swish.createdDate.toString();
-      const decResult = serverHS.decryptRequest(headers, req.body, privateKey, passphrase);
-      req.body = decResult.body;
+      const privateKey = req.swish.nextPrivate
+      const passphrase = req.swish.createdDate.toString()
+      const decResult = serverHS.decryptRequest(headers, req.body, privateKey, passphrase)
+      req.body = decResult.body
 
-      await self.updateSession(req.swish.sessionId, {
+      await this.updateSession(req.swish.sessionId, {
         nextPublic: decResult.nextPubKey,
-      });
+      })
     }
-    next();
+    next()
   }
 
   /**
@@ -218,11 +219,11 @@ export class Swish {
    * @param res The expressJs response object
    */
   async handleSwishSessionDestroy(req: Request, res: Response): Promise<void> {
-    if (await self.destroySession(req.swish.sessionId)) {
-      res.send({ code: 200, action: 'session_destroy' });
-      return undefined;
+    if (await this.destroySession(req.swish.sessionId)) {
+      res.send({ code: 200, action: 'session_destroy' })
+      return undefined
     }
-    throw new HtmlError(serverErrorCodes.internalServer, 'SESSION_DESTROY_FAILED');
+    throw new HtmlError(serverErrorCodes.internalServer, 'SESSION_DESTROY_FAILED')
   }
 
   /**
@@ -234,31 +235,31 @@ export class Swish {
   async middleware(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // reconstruct the new sendSwish extended function using the new keys and session states
-      res.sendSwish = senddSwish;
+      res.sendSwish = senddSwish
 
       if (req.headers['swish-action'] !== undefined) {
         if (req.headers['swish-action'] === 'handshake_init') {
-          await self.handleHandshake(req, res);
+          await this.handleHandshake(req, res)
         } else if (req.headers['swish-action'] === 'request_basic') {
-          await self.loadSession(req);
-          validateRequestSession(req);
-          await self.handleSwishRequest(req, res, next);
+          await this.loadSession(req)
+          validateRequestSession(req)
+          await this.handleSwishRequest(req, res, next)
         } else if (req.headers['swish-action'] === 'session_destroy') {
-          await self.loadSession(req);
-          validateRequestSession(req);
-          await self.handleSwishSessionDestroy(req, res);
+          await this.loadSession(req)
+          validateRequestSession(req)
+          await this.handleSwishSessionDestroy(req, res)
         } else {
-          throw new Error(`SWISH_ACTION_INVALID:${req.headers.swish_action}`);
+          throw new Error(`SWISH_ACTION_INVALID:${req.headers.swish_action}`)
         }
       } else {
-        throw new Error('SWISH_ACTION_UNDEFINED');
+        throw new Error('SWISH_ACTION_UNDEFINED')
       }
     } catch (err) {
       if (err instanceof HtmlError) {
-        res.status(err.statusCode).send(err.message);
-        return;
+        res.status(err.statusCode).send(err.message)
+        return
       }
-      next(err);
+      next(err)
     }
   }
 }

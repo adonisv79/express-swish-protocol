@@ -10,10 +10,12 @@
   "scripts": {
     "dist:client": "node dist/tools/test-client",
     "dist:server": "node dist/tools/test-server",
+    "audit": "npm audit",
+    "lint": "eslint \"src/**/*.ts\" \"tools/**/*.ts\"",
+    "snyk": "snyk test",
     "test": "jest",
-    "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:coveralls": "jest --coverage --coverageReporters=text-lcov | coveralls"
+    "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
     "type": "git",
@@ -36,23 +38,21 @@
     "swish-protocol": "^2.2.1"
   },
   "devDependencies": {
-    "@types/express": "4.17.3",
-    "@types/jest": "25.1.4",
-    "@types/node": "13.9.5",
-    "@types/request": "^2.48.4",
-    "@types/request-promise": "^4.1.46",
-    "@typescript-eslint/eslint-plugin": "2.25.0",
-    "@typescript-eslint/parser": "2.25.0",
+    "@types/express": "4.17.1",
+    "@types/jest": "26.0.22",
+    "@types/node": "14.14.37",
+    "@types/request-promise": "^4.1.47",
+    "@typescript-eslint/eslint-plugin": "4.20.0",
+    "@typescript-eslint/parser": "4.20.0",
+    "axios": "0.21.1",
     "body-parser": "1.19.0",
-    "coveralls": "3.0.5",
-    "eslint": "6.1.0",
-    "eslint-config-airbnb": "18.1.0",
-    "eslint-plugin-import": "2.20.2",
-    "eslint-plugin-jsx-a11y": "6.2.3",
-    "eslint-plugin-react": "7.19.0",
-    "jest": "24.8.0",
+    "coveralls": "3.1.0",
+    "eslint": "7.23.0",
+    "eslint-config-airbnb-typescript": "12.3.1",
+    "eslint-plugin-import": "2.22.0",
+    "jest": "26.6.3",
     "request-swish": "^1.1.0",
-    "ts-jest": "25.2.1",
-    "typescript": "3.8.3"
+    "ts-jest": "26.5.4",
+    "typescript": "4.2.3"
   }
 }
