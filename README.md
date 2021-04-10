@@ -3,7 +3,7 @@ This is the SWISH (Secured Web Iterating Session Handshake) middleware implement
 ![request swish banner](https://adonisv79.github.io/express-swish-protocol/images/banner.png)
 
 ## Project stats
-* Package: [![npm](https://img.shields.io/npm/v/express-swish-protocol.svg)](https://www.npmjs.com/package/express-swish-protocol) [![npm](https://img.shields.io/npm/dm/express-swish-protocol.svg)](https://www.npmjs.com/package/express-swish-protocol)
+* Package: [![npm](https://img.shields.io/npm/v/.svg)](https://www.npmjs.com/package/express-swish-protocol) [![npm](https://img.shields.io/npm/dm/express-swish-protocol.svg)](https://www.npmjs.com/package/express-swish-protocol)
 * License: [![GitHub](https://img.shields.io/github/license/adonisv79/express-swish-protocol.svg)](https://github.com/adonisv79/express-swish-protocol/blob/master/LICENSE)
 * CICD: [![Codacy Badge](https://app.codacy.com/project/badge/Grade/82a6fbafd28343a9886caf60bbda4dd7)](https://www.codacy.com/gh/adonisv79/express-swish-protocol/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=adonisv79/express-swish-protocol&amp;utm_campaign=Badge_Grade) [![Known Vulnerabilities](https://snyk.io/test/github/adonisv79/express-swish-protocol/badge.svg)](https://snyk.io/test/github/adonisv79/express-swish-protocol)
   * develop: [![Build Status](https://www.travis-ci.com/adonisv79/express-swish-protocol.svg?branch=develop)](https://www.travis-ci.com/adonisv79/express-swish-protocol) [![Coverage Status](https://coveralls.io/repos/github/adonisv79/express-swish-protocol/badge.svg?branch=develop)](https://coveralls.io/github/adonisv79/express-swish-protocol?branch=develop)
