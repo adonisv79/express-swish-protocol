@@ -2,7 +2,22 @@ sudo: false
 language: node_js
 node_js: 14.15.3
 script:
-  - npm run audit
-  - npm run snyk
-  - npm run lint
-  - npm run test
+- npm run audit
+- npm run snyk
+- npm run lint
+- npm run test
+after_success: npm run coveralls
+env:
+  SNYK_TOKEN:
+    secure: BTNllWJ/lOb27nYGrsLQlu6vMI32VHbrfifuAWR6lw7DsyFaeDBy0E6Tz3ZkQmbG25fC/3wJFPJObWRlg8KOcfneOIPztWIOOm2SukvGKpVeaEwNcDv+draGCGdWk1pq76uiEJR6EOr2GjTBcM+B5oIIO6c/cD43qqqXF4llkzhKHASvOvI2hO5ONnhKBgbtLiGtG4f109Hz0UwrjcfCN/COWQWF2mfSHVaWs7Na3+fLzIt0gdgsptMO+gpKT2Dht04mPfUlcNWouKPMc7Wy4Cl0/p7NCWj0++Gf8kKzQhSODg20D/RHh0OPzVlSEFL150RpbheVyqwPSMC7n2Dvzkn50GgDGpL5ASpo9z0u2Y6/tyy3WMUmlrxtaRRn5F0U/APNV3CGiFm22bYf5qawP4YUKF26XP5e2gqIM/PpeuoG0yNkkVg2ONkyEd+2OMq3gf6wznLjyedSP3KMWK9y6pVX/HdDrBDKUyvRjEg8BZyD43YDR508/07BQ3PqObyRiH6D8i/+OmxZUlGW3yYUx4rcz6PRLIoduMxqpTOsSUQfzx/FH0VV/sSxPn/J7IIypUOGzXDKp+/DFMZ9ksTLfPtol0td4ZCpeNxJWmH0fTJAqRWsjFfzpBxI7F2knspgOSAOjyporlwWZFsxROYMeLIBTGDT9Y7MisISc7nyGy0=
+before_deploy:
+- npm run build
+deploy:
+  provider: npm
+  email: adonisv79@gmail.com
+  skip_cleanup: true
+  api_key:
+    secure: BTIs23jqk+THh9O/ilgSBKLZv2gNo71Qk5h6tLoV3UMi8yFB0ECWlpJq6auJU9VahVYF5DcN+O1x7tUqquIY6iC2MRCrgGF3irFvsK4bRaBkGoCt4ODcDtmzeaWoWu9vbPWYTidbZEFgpYYQylTAmdsAdFNcGWQM/e/PJ+HmMO3D8g+6LIPJF7kry/2mdq4HEbsFtVjXtlBo/JQzhqKFZ/8cHQiURlN82hn3VVzAvIL5q1bq+TVeVhmguLhm1i7o+U7RZmtmwNV2OBtR70f8Zmhp/1kUDjAOSbdST08B0rfhWr1NDZ2LGiB4WM059juMknvIJlzchboWK175Agdlnjn51+FJHtk9D6F8xeG/Fh58GseLZF+cxam2mMGqEh0/e6ViPuv6W8+JpDuTNsuUSdNX+oavzfKRHV7ZpBOPQMx6sBdrK3BE/OU5OuXkf1rQVd/dIzk5Afl4JDvjBAqH9i0g3cKA+1mhe3s4fbknyCh4dIBKqk4pUKhCHzptcPBmWK3NtUfhc/KKMqilMd50EVbQknKntZqLx9HaLw3p8y/RT9XzO6SYNhUHETfKl2hIShdGxE67KmJ8XogIpk/I737vJ4SOBi55PiAOjs5tSldtlZHKPXD3HNveF2ZqFbw5fhMI3uqtXXVDC1R7HQhIpSy0Dh3HnCbyWUx14mdwkKI=
+  on:
+    tags: true
+    branch: master

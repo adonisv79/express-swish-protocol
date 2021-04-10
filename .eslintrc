@@ -12,6 +12,7 @@
   },
   "plugins": [ "@typescript-eslint" ],
   "rules": {
+    "@typescript-eslint/no-this-alias": "off",
     "@typescript-eslint/no-unused-vars":"error",
     "@typescript-eslint/no-var-requires": "off",
     "@typescript-eslint/semi": ["error", "never"],
@@ -22,17 +23,6 @@
     "import/no-extraneous-dependencies": [
       "error",
       { "devDependencies": true }
-    ],
-    "class-methods-use-this": "off",
-    "import/extensions": [
-      "error",
-      "ignorePackages",
-      {
-        "js": "never",
-        "jsx": "never",
-        "ts": "never",
-        "tsx": "never"
-      }
     ]
   },
   "settings": {
