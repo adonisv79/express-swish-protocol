@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/adonisv79/express-swish#readme",
   "dependencies": {
-    "express": "4.17.1",
+    "express": "4.17.3",
     "html-codes": "^0.2.1",
     "swish-protocol": "2.5.0"
   },
